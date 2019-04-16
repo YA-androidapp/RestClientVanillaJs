@@ -1,0 +1,178 @@
+<!DOCTYPE html><!-- Copyright (c) 2019 YA-androidapp(https://github.com/YA-androidapp) All rights reserved. -->
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>REST Client</title>
+</head>
+
+<body>
+
+    <table class="formTable" border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th></th>
+        </tr>
+        <tr>
+            <td><input type="text" id="idCreate" placeholder="ID" /></td>
+            <td><input type="text" id="nameCreate" placeholder="Name" /></td>
+            <td><button type="button" id="buttonCreate">Create</button></td>
+        </tr>
+        <tr>
+            <td><input type="text" id="idRead" placeholder="ID" /></td>
+            <td></td>
+            <td><button type="button" id="buttonRead">Read</button></td>
+        </tr>
+        <tr>
+            <td><input type="text" id="idUpdate" placeholder="ID" /></td>
+            <td><input type="text" id="nameUpdate" placeholder="Name" /></td>
+            <td><button type="button" id="buttonUpdate">Update</button></td>
+        </tr>
+        <tr>
+            <td><input type="text" id="idDelete" placeholder="ID" /></td>
+            <td></td>
+            <td><button type="button" id="buttonDelete">Delete</button></td>
+        </tr>
+    </table>
+
+    <hr />
+
+    <div id="divRead"></div>
+
+    <script type="text/javascript">
+        const api_host = "http://example.net";
+        const api_path = "/api";
+        const endpoint_create = api_host + api_path; // + "/Create";
+        const endpoint_read   = api_host + api_path; // + "/Read";
+        const endpoint_update = api_host + api_path; // + "/Update";
+        const endpoint_delete = api_host + api_path; // + "/Delete";
+
+        (function () {
+            function restCreate(endpoint, json, callback) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', endpoint, true);
+                xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                xhr.onreadystatechange = function () {
+                    if ((this.readyState == 4) && (this.status == 201)) {
+                        callback(this.response);
+                    }
+                };
+                xhr.responseType = 'json';
+                xhr.send(JSON.stringify(json));
+            };
+
+            function restRead(endpoint, json, callback) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', endpoint, true);
+                xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                xhr.onreadystatechange = function () {
+                    if ((this.readyState == 4) && (this.status == 200)) {
+                        callback(this.response);
+                    }
+                };
+                xhr.responseType = 'json';
+                xhr.send(JSON.stringify(json));
+            };
+
+            function restUpdate(endpoint, json, callback) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('PUT', endpoint, true);
+                xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                xhr.onreadystatechange = function () {
+                    if ((this.readyState == 4) && ((this.status == 201) || (this.status == 204))) {
+                        callback(this.response);
+                    }
+                };
+                xhr.responseType = 'json';
+                xhr.send(JSON.stringify(json));
+            };
+
+            function restDelete(endpoint, json, callback) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('DELETE', endpoint, true);
+                xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                xhr.onreadystatechange = function () {
+                    if ((this.readyState == 4) && (this.status == 204)) {
+                        callback(this.response);
+                    }
+                };
+                xhr.responseType = 'json';
+                xhr.send(JSON.stringify(json));
+            };
+
+            document.getElementById('buttonCreate').addEventListener('click', function () {
+                if (window.confirm('Are you sure you want to continue creating?\n' + document.getElementById('idCreate').value + " / " + document.getElementById('nameCreate').value)) {
+                    var json = {};
+                    json.id = document.getElementById('idCreate').value;
+                    json.name = document.getElementById('nameCreate').value;
+                    restCreate(endpoint_create, json, function (response) {
+                        window.alert('Created.');
+                    });
+                }
+            });
+
+            document.getElementById('buttonRead').addEventListener('click', function () {
+                var json = {};
+                json.id = document.getElementById('idRead').value;
+                restRead(endpoint_read, json, function (response) {
+                    writeTable(response);
+                });
+            });
+
+            document.getElementById('buttonUpdate').addEventListener('click', function () {
+                if (window.confirm('Are you sure you want to continue updating?\n' + document.getElementById('idUpdate').value + " / " + document.getElementById('nameUpdate').value)) {
+                    var json = {};
+                    json.id = document.getElementById('idUpdate').value;
+                    json.name = document.getElementById('nameUpdate').value;
+                    restUpdate(endpoint_update, json, function (response) {
+                        window.alert('Updated.');
+                    });
+                }
+            });
+
+            document.getElementById('buttonDelete').addEventListener('click', function () {
+                if (window.confirm('Are you sure you want to continue deleting?\n' + document.getElementById('idDelete').value)) {
+                    var json = {};
+                    json.id = document.getElementById('idDelete').value;
+                    restDelete(endpoint_delete, json, function (response) {
+                        window.alert('Deleted.');
+                    });
+                }
+            });
+
+            function writeTable(data) {
+                if (data != "") {
+                    var jsonResponse = data; // JSON.parse(data);
+                    var table = document.createElement('table');
+                    var properties = ['id', 'name'];
+                    var capitalize = function (s) {
+                        return s.charAt(0).toUpperCase() + s.slice(1);
+                    }
+                    var tr = document.createElement('tr');
+                    for (var i = 0; i < properties.length; i++) {
+                        var th = document.createElement('th');
+                        th.appendChild(document.createTextNode(capitalize(properties[i])));
+                        tr.appendChild(th);
+                    }
+                    table.appendChild(tr);
+
+                    var tr, row;
+                    for (var r = 0; r < jsonResponse.length; r++) {
+                        tr = document.createElement('tr');
+                        row = jsonResponse[r];
+                        for (var i = 0; i < properties.length; i++) {
+                            var td = document.createElement('td');
+                            td.appendChild(document.createTextNode(row[properties[i]]));
+                            tr.appendChild(td);
+                        }
+                        table.appendChild(tr);
+                    }
+                    document.getElementById('divRead').appendChild(table);
+                }
+            }
+        })();
+    </script>
+</body>
+
+</html>
